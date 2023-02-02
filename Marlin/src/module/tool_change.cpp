@@ -31,7 +31,7 @@
 
 #include "../MarlinCore.h"
 
-//#define DEBUG_TOOL_CHANGE
+#define DEBUG_TOOL_CHANGE
 //#define DEBUG_TOOLCHANGE_FILAMENT_SWAP
 
 #define DEBUG_OUT ENABLED(DEBUG_TOOL_CHANGE)
@@ -1095,7 +1095,10 @@ void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_axis, 0.
  * previous tool out of the way and the new tool into place.
  */
 void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
-
+  DEBUG_ECHOLNPGM("I.no_move=d", no_move);
+  DEBUG_ECHOLNPGM("I.new_tool=", new_tool);
+  DEBUG_ECHOLNPGM("I.active_extruder=", active_extruder);
+  DEBUG_ECHOLNPGM("I.active_extruder_parked=", active_extruder_parked);
   if (TERN0(MAGNETIC_SWITCHING_TOOLHEAD, new_tool == active_extruder))
     return;
 
@@ -1134,6 +1137,8 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
     planner.synchronize();
 
     #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_MIRRORED_MODE
+    if(active_extruder_parked) DEBUG_ECHOLNPGM("Active Extruder %i Parked", active_extruder);
+    if(!active_extruder_parked) DEBUG_ECHOLNPGM("Active Extruder  %i not Parked", active_extruder);
       if (new_tool != 0 && idex_is_duplicating())
          return invalid_extruder_error(new_tool);
     #endif
@@ -1142,6 +1147,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
       return invalid_extruder_error(new_tool);
 
     if (!no_move && homing_needed()) {
+      if(homing_needed()) DEBUG_ECHOLNPGM("Homing needed");
       no_move = true;
       DEBUG_ECHOLNPGM("No move (not homed)");
     }
